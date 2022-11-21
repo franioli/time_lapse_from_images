@@ -1,0 +1,13 @@
+name: timelapse
+channels:
+  - conda-forge
+dependencies:
+  - python=3.10
+  - pip
+  - opencv
+  - numpy
+  - pip:
+      - pillow
+      - easydict
+      - tqdm
+      - exifread
