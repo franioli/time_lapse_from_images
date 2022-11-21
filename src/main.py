@@ -28,8 +28,9 @@ def generate_video(
     image_dir = Path(image_dir)
     if im_ext:
         # Make glob search case-insensitive (using bash expansions)
-        assert len(
-            im_ext) == 3, "Wrong extension input. Please, provide extension with 3 characters only (e.g., jpg)"
+        assert (
+            len(im_ext) == 3
+        ), "Wrong extension input. Please, provide extension with 3 characters only (e.g., jpg)"
         suf = [f"[{x.lower()}{x.upper()}]" for x in im_ext]
         im_list = sorted(image_dir.glob(f"*.{suf[0]}{suf[1]}{suf[2]}"))
     else:
@@ -43,8 +44,8 @@ def generate_video(
 
     # Size casted to int
     if resize_fct != 1:
-        size = tuple([int(x/resize_fct) for x in size])
-        print(f'Resizing images to {size[0]}x{size[1]}')
+        size = tuple([int(x / resize_fct) for x in size])
+        print(f"Resizing images to {size[0]}x{size[1]}")
 
     video = cv2.VideoWriter(video_name, fourcc, fps, size)
 
@@ -71,10 +72,10 @@ def overlay_info_on_image(
     im_path: Union[Path, str],
     logo_path: Union[Path, str] = None,
 ) -> np.ndarray:
-    f = open(im_path, 'rb')
-    tags = exifread.process_file(f, details=False, stop_tag='DateTimeOriginal')
+    f = open(im_path, "rb")
+    tags = exifread.process_file(f, details=False, stop_tag="DateTimeOriginal")
     # if "Image DateTime" in tags.keys():
-    date_str = tags['EXIF DateTimeOriginal'].values
+    date_str = tags["EXIF DateTimeOriginal"].values
     date_fmt = "%Y:%m:%d %H:%M:%S"
     date_time = datetime.strptime(date_str, date_fmt)
     over_str = f"{date_time.year}-{date_time.month:02}-{date_time.day:02}"
@@ -82,7 +83,7 @@ def overlay_info_on_image(
     image = cv2.imread(str(im_path))
     h, w, _ = image.shape
     font = cv2.FONT_HERSHEY_DUPLEX
-    bottomLeftCornerOfText = (int(w/2-800), h-100)
+    bottomLeftCornerOfText = (int(w / 2 - 800), h - 100)
     fontScale = 8
     fontColor = (255, 255, 255)
     thickness = 10
@@ -95,7 +96,7 @@ def overlay_info_on_image(
         font,
         fontScale,
         (0,),
-        thickness+10,
+        thickness + 10,
         lineType,
     )
     # Inner text
@@ -126,11 +127,11 @@ def overlay_logo(
 ):
     h, w = img_overlay.shape[:2]
     shapes = np.zeros_like(img, np.uint8)
-    shapes[img.shape[0]-h-pading:-pading,
-           img.shape[1]-w-pading:-pading] = img_overlay
+    shapes[
+        img.shape[0] - h - pading : -pading, img.shape[1] - w - pading : -pading
+    ] = img_overlay
     mask = shapes.astype(bool)
-    img[mask] = cv2.addWeighted(img, 1 - alpha, shapes,
-                                alpha, 0)[mask]
+    img[mask] = cv2.addWeighted(img, 1 - alpha, shapes, alpha, 0)[mask]
 
     # cv2.imwrite("out.jpg", img)
     # cv2.namedWindow("a", cv2.WINDOW_NORMAL)
@@ -160,8 +161,7 @@ def resize_all_images(
     size = tuple([int(x) for x in size])
 
     im = Image.open(im_list[0])
-    print(
-        f'Resizing images from {im.size[0]}x{im.size[1]} to {size[0]}x{size[1]}: ')
+    print(f"Resizing images from {im.size[0]}x{im.size[1]} to {size[0]}x{size[1]}: ")
 
     if out_path is None:
         out_path = im_list[0].parent / "resized"
@@ -178,8 +178,9 @@ def resize_all_images(
         # print('*', end='')
         im = Image.open(file)
         imResize = im.resize(size, Image.Resampling.LANCZOS)
-        imResize.save(out_path / file.name, out_fmt,
-                      quality=jpg_quality)  # setting quality
+        imResize.save(
+            out_path / file.name, out_fmt, quality=jpg_quality
+        )  # setting quality
 
     return out_path
 
@@ -189,24 +190,48 @@ if __name__ == "__main__":
     from easydict import EasyDict as edict
 
     parser = argparse.ArgumentParser(
-        prog='CreateTimeLapse',
-        description='Create Time Lapse video from series of images',
-        epilog='\n')
+        prog="CreateTimeLapse",
+        description="Create Time Lapse video from series of images",
+        epilog="\n",
+    )
 
-    parser.add_argument("-i", "--image_dir", type=str,
-                        help="Path to directory containing the images")
-    parser.add_argument("-o", "--output_name", type=str, default='out',
-                        help="Name of the output video (without extension).")
-    parser.add_argument("--image_ext", type=str, default=None,
-                        help="Extension of the images to be included in the video. If None is provided, no checks on the type of files in IMAGE_DIR are carried out. Default=None")
-    parser.add_argument("--fps", type=float, default=30.,
-                        help="Video Frame Rate. Default=30 fps")
-    parser.add_argument("--codec", type=str, default='avc1',
-                        help="Codec string according to OpenCV. Default='avc1'")
-    parser.add_argument("--resize_fct", type=float, default=1.,
-                        help="Factor for resizing the images (2 means downsampling the images by a factor 2). Default=1")
-    parser.add_argument("--logo", type=str, default=None,
-                        help="Path to logo image (with ext) to add at the bottom of the video. Default=None")
+    parser.add_argument(
+        "-i", "--image_dir", type=str, help="Path to directory containing the images"
+    )
+    parser.add_argument(
+        "-o",
+        "--output_name",
+        type=str,
+        default="out",
+        help="Name of the output video (without extension).",
+    )
+    parser.add_argument(
+        "--image_ext",
+        type=str,
+        default=None,
+        help="Extension of the images to be included in the video. If None is provided, no checks on the type of files in IMAGE_DIR are carried out. Default=None",
+    )
+    parser.add_argument(
+        "--fps", type=float, default=30.0, help="Video Frame Rate. Default=30 fps"
+    )
+    parser.add_argument(
+        "--codec",
+        type=str,
+        default="avc1",
+        help="Codec string according to OpenCV. Default='avc1'",
+    )
+    parser.add_argument(
+        "--resize_fct",
+        type=float,
+        default=1.0,
+        help="Factor for resizing the images (2 means downsampling the images by a factor 2). Default=1",
+    )
+    parser.add_argument(
+        "--logo",
+        type=str,
+        default=None,
+        help="Path to logo image (with ext) to add at the bottom of the video. Default=None",
+    )
     args = parser.parse_args()
 
     print("-------------------------------------")
@@ -214,26 +239,31 @@ if __name__ == "__main__":
     print("-------------------------------------")
 
     # For testing purposes
-    # args = edict({
-    #     'image_dir': 'test',
-    #     'image_ext': 'JPG',
-    #     "output_name": "test",
-    #     "fps": 30.,
-    #     "resize_fct": 4,
-    #     "logo": "data/logo_polimi.jpg",
-    #     "codec": 'avc1',
-    # })
+    # args = edict(
+    #     {
+    #         "image_dir": "test",
+    #         "image_ext": "JPG",
+    #         "output_name": "test",
+    #         "fps": 30.0,
+    #         "resize_fct": 4,
+    #         "logo": "data/logo_polimi.jpg",
+    #         "codec": "avc1",
+    #     }
+    # )
 
     # Check Paths
     args.image_dir = Path(args.image_dir)
-    assert args.image_dir.is_dir(), "Image directory does not exist. Provide a valid path."
+    assert (
+        args.image_dir.is_dir()
+    ), "Image directory does not exist. Provide a valid path."
     if args.logo:
         assert Path(
-            args.logo).is_file(), "Logo image does not exist. Provide a valid path."
+            args.logo
+        ).is_file(), "Logo image does not exist. Provide a valid path."
 
     video_name = f"{args.output_name}_{int(args.fps)}fps.mp4"
     num_of_images = len(os.listdir(args.image_dir))
-    print(f'Images found: {num_of_images}')
+    print(f"Images found: {num_of_images}")
 
     fourcc = cv2.VideoWriter_fourcc(
         args.codec[0],
@@ -241,13 +271,14 @@ if __name__ == "__main__":
         args.codec[2],
         args.codec[3],
     )
-    generate_video(args.image_dir,
-                   video_name=video_name,
-                   resize_fct=args.resize_fct,
-                   im_ext=args.image_ext,
-                   fourcc=fourcc,
-                   fps=args.fps,
-                   logo_path=args.logo
-                   )
+    generate_video(
+        args.image_dir,
+        video_name=video_name,
+        resize_fct=args.resize_fct,
+        im_ext=args.image_ext,
+        fourcc=fourcc,
+        fps=args.fps,
+        logo_path=args.logo,
+    )
 
     print("Done")
